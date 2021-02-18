@@ -4,7 +4,7 @@
 
 <a href="https://github.com/ultralytics/yolov5/actions"><img src="https://github.com/ultralytics/yolov5/workflows/CI%20CPU%20testing/badge.svg" alt="CI CPU testing"></a>
 
-This repository represents Ultralytics open-source research into future object detection methods, and incorporates lessons learned and best practices evolved over thousands of hours of training and evolution on anonymized client datasets. **All code and models are under active development, and are subject to modification or deletion without notice.** Use at your own risk.
+该repository代表Ultralytics对未来的对象检测方法的开源研究，并结合了在匿名客户数据集上数千小时的训练和评估过拟合中汲取的经验教训和最佳实践。 **所有代码和模型都在积极开发中，如有更改或删除，恕不另行通知, 使用后果自负。
 
 <img src="https://user-images.githubusercontent.com/26833433/103594689-455e0e00-4eae-11eb-9cdf-7d753e2ceeeb.png" width="1000">** GPU Speed measures end-to-end time per image averaged over 5000 COCO val2017 images using a V100 GPU with batch size 32, and includes image preprocessing, PyTorch FP16 inference, postprocessing and NMS. EfficientDet data from [google/automl](https://github.com/google/automl) at batch size 8.
 
@@ -34,7 +34,7 @@ This repository represents Ultralytics open-source research into future object d
 ** AP<sup>test</sup> denotes COCO [test-dev2017](http://cocodataset.org/#upload) server results, all other AP results denote val2017 accuracy.  
 ** All AP numbers are for single-model single-scale without ensemble or TTA. **Reproduce mAP** by `python test.py --data coco.yaml --img 640 --conf 0.001 --iou 0.65`  
 ** Speed<sub>GPU</sub> averaged over 5000 COCO val2017 images using a GCP [n1-standard-16](https://cloud.google.com/compute/docs/machine-types#n1_standard_machine_types) V100 instance, and includes image preprocessing, FP16 inference, postprocessing and NMS. NMS is 1-2ms/img.  **Reproduce speed** by `python test.py --data coco.yaml --img 640 --conf 0.25 --iou 0.45`  
-** All checkpoints are trained to 300 epochs with default settings and hyperparameters (no autoaugmentation). 
+** 使用默认设置和超参数将所有checkpoint训练到300个epoch  (no autoaugmentation). 
 ** Test Time Augmentation ([TTA](https://github.com/ultralytics/yolov5/issues/303)) runs at 3 image sizes. **Reproduce TTA** by `python test.py --data coco.yaml --img 832 --iou 0.65 --augment` 
 
 
@@ -63,7 +63,7 @@ $ pip install -r requirements.txt
 
 ## Environments
 
-YOLOv5 may be run in any of the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+YOLOv5可以在以下任何经过验证的最新环境中运行 (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
 
 - **Google Colab and Kaggle** notebooks with free GPU: <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/GCP-Quickstart)
@@ -72,8 +72,7 @@ YOLOv5 may be run in any of the following up-to-date verified environments (with
 
 
 ## Inference
-
-detect.py runs inference on a variety of sources, downloading models automatically from the [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases) and saving results to `runs/detect`.
+detect.py在各种源文件上进行推理，并自动从  [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases) 下载模型并把推理结果保存到 `runs/detect`.
 ```bash
 $ python detect.py --source 0  # webcam
                             file.jpg  # image 
@@ -85,7 +84,7 @@ $ python detect.py --source 0  # webcam
                             http://112.50.243.8/PLTV/88888888/224/3221225900/1.m3u8  # http stream
 ```
 
-To run inference on example images in `data/images`:
+在以下示例图像上进行推理 `data/images`:
 ```bash
 $ python detect.py --source data/images --weights yolov5s.pt --conf 0.25
 
@@ -104,8 +103,7 @@ Done. (0.113s)
 <img src="https://user-images.githubusercontent.com/26833433/97107365-685a8d80-16c7-11eb-8c2e-83aac701d8b9.jpeg" width="500">  
 
 ### PyTorch Hub
-
-To run **batched inference** with YOLOv5 and [PyTorch Hub](https://github.com/ultralytics/yolov5/issues/36):
+方法2，使用 PyTorch Hub, 对于大量数量，使用批次推理 YOLOv5 and [PyTorch Hub](https://github.com/ultralytics/yolov5/issues/36):
 ```python
 import torch
 from PIL import Image
@@ -125,7 +123,7 @@ result = model(imgs)
 
 ## Training
 
-Run commands below to reproduce results on [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset (dataset auto-downloads on first use). Training times for YOLOv5s/m/l/x are 2/4/6/8 days on a single V100 (multi-GPU times faster). Use the largest `--batch-size` your GPU allows (batch sizes shown for 16 GB devices).
+训练模型，运行以下命令以重现结果[COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset (数据集自动下载). 训练时间： YOLOv5s/m/l/x are 2/4/6/8 天在单颗GPU上 V100 (multi-GPU times faster). Use the largest `--batch-size` your GPU allows (batch sizes shown for 16 GB devices).
 ```bash
 $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 64
                                          yolov5m                                40
@@ -153,3 +151,79 @@ For business inquiries and professional support requests please visit us at http
 ## Contact
 
 **Issues should be raised directly in the repository.** For business inquiries or professional support requests please visit https://www.ultralytics.com or email Glenn Jocher at glenn.jocher@ultralytics.com. 
+
+
+
+# wiki
+## [自定义训练集](https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data)
+训练示例colab: https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb
+### 安装依赖  Python>=3.8 and PyTorch>=1.7
+```buildoutcfg
+$ git clone https://github.com/ultralytics/yolov5  # clone repo
+$ cd yolov5
+$ pip install -r requirements.txt  # install dependencies
+```
+### 创建数据集
+
+####  1. 创建dataset.yaml
+COCO128是一个小型教程数据集，由COCO train2017中的前128张图像组成。 这些相同的128张图像用于训练和验证，以验证我们的训练pipeline是否能够拟合。 如下所示，data/coco128.yaml是数据集配置文件，该文件定义了1）用于自动下载的可选下载命令/URL，2）训练图像目录的路径（或带有*的*.txt文件的路径的训练图像列表），3）与我们的验证图像相同，4）类别数量，5）类别名称列表：
+```buildoutcfg
+# cat data/coco128.yaml
+# download command/URL (optional)
+download: https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.zip
+
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: ../coco128/images/train2017/
+val: ../coco128/images/train2017/
+
+# number of classes
+nc: 80
+
+# class names
+names: ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 
+        'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 
+        'teddy bear', 'hair drier', 'toothbrush']
+```
+
+#### 2. 创建标签，为图像打标
+使用CVAT，makesense.ai或Labelbox之类的工具标注图像后，将label导出为YOLO格式，每个图像一个*.txt文件（如果图像中没有对象，则不需要*.txt文件）。 *.txt文件规范为： 
+```buildoutcfg
+每个对象一行
+每行都是x_center y_center width height 格式。
+框坐标必须采用标准化的xywh格式（0~1）。 如果您的框以像素为单位，则将x_center和width除以图像宽度，将y_center和height除以图像高度。
+类别编号为零索引（从0开始）。
+```
+<img src="https://user-images.githubusercontent.com/26833433/91506361-c7965000-e886-11ea-8291-c72b98c25eec.jpg" width="600">
+
+与上图相对应的标签文件包含2个人（0类）和一条领带（27类）： 
+<img src="https://user-images.githubusercontent.com/26833433/98809572-0bc4d580-241e-11eb-844e-eee756f878c2.png" width="600">
+
+#### 3.整理图片和标签的文件夹位置
+根据以下样本整理训练和val图像和标签。 在此样本中，我们假设/coco128在/yolov5目录旁边。 YOLOv5通过用/labels/替换images目录中的/images/的最后一个实例，自动为每个图像定位label。 例如： 
+```buildoutcfg
+#只有目录和后缀不一样
+coco/images/train2017/000000109622.jpg  # image
+coco/labels/train2017/000000109622.txt  # label
+```
+<img src="https://user-images.githubusercontent.com/26833433/83666389-bab4d980-a581-11ea-898b-b25471d37b83.jpg" width="600">
+
+#### 4.选择一个预训练模型
+选择一个预训练的模型以开始训练。 在这里，我们选择YOLOv5s，这是最小，最快的模型。 有关所有模型的完整比较，请参见我们的自述表。 
+<img src="https://user-images.githubusercontent.com/26833433/103595982-ab986000-4eb1-11eb-8c57-4726261b0a88.png" width="600">
+
+### 5.开始训练
+通过指定数据集，批次大小，图像大小以及预训练的--weights yolov5s.pt（推荐）或随机初始化的--weights'' --cfg yolov5s.yaml（不推荐），在COCO128上训练YOLOv5s模型。 可从最新的YOLOv5版本中自动下载预训练的权重。 
+```buildoutcfg
+# Train YOLOv5s on COCO128 for 5 epochs
+$ python train.py --img 640 --batch 16 --epochs 5 --data coco128.yaml --weights yolov5s.pt
+```
+所有训练结果都将以递增的运行目录（即，runs/train/exp2，runs/train/exp3等）保存到runs/train/中。有关更多详细信息，请参见Google Colab Notebook的Training部分。 
+
+### 可视化部分
+
