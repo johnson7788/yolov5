@@ -137,9 +137,37 @@ $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 
 ```
 <img src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" width="900">
 
-训练自定义的数据,使用yolov5s.pt 预训练模型继续训练
+训练自定义的数据,使用yolov5s.pt 预训练模型继续训练, 250张图片，3个epoch，耗时约1分钟
 ```buildoutcfg
 python train.py --img 640 --batch 16 --epochs 3 --data pdfmini.yaml --weights yolov5s.pt --nosave --cache
+
+训练结果
+tree runs/train/exp2/
+runs/train/exp2/
+├── confusion_matrix.png
+├── events.out.tfevents.1613795812.wacserver3.21644.0
+├── F1_curve.png
+├── hyp.yaml
+├── labels_correlogram.jpg
+├── labels.jpg
+├── opt.yaml
+├── P_curve.png
+├── PR_curve.png
+├── R_curve.png
+├── results.png
+├── results.txt
+├── test_batch0_labels.jpg
+├── test_batch0_pred.jpg
+├── test_batch1_labels.jpg
+├── test_batch1_pred.jpg
+├── test_batch2_labels.jpg
+├── test_batch2_pred.jpg
+├── train_batch0.jpg
+├── train_batch1.jpg
+├── train_batch2.jpg
+└── weights
+    ├── best.pt
+    └── last.pt
 ```
 
 ## Citation
