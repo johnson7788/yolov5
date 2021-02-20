@@ -15,7 +15,7 @@
 - **June 19, 2020**: [FP16](https://pytorch.org/docs/stable/nn.html#torch.nn.Module.half) as new default for smaller checkpoints and faster inference [d4c6674](https://github.com/ultralytics/yolov5/commit/d4c6674c98e19df4c40e33a777610a18d1961145).
 
 
-## Pretrained Checkpoints
+## 预训练模型
 
 | Model | size | AP<sup>val</sup> | AP<sup>test</sup> | AP<sub>50</sub> | Speed<sub>V100</sub> | FPS<sub>V100</sub> || params | GFLOPS |
 |---------- |------ |------ |------ |------ | -------- | ------| ------ |------  |  :------: |
@@ -38,7 +38,7 @@
 ** Test Time Augmentation ([TTA](https://github.com/ultralytics/yolov5/issues/303)) runs at 3 image sizes. **Reproduce TTA** by `python test.py --data coco.yaml --img 832 --iou 0.65 --augment` 
 
 
-## Requirements
+## 依赖
 
 Python 3.8 or later with all [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt) dependencies installed, including `torch>=1.7`. To install run:
 ```bash
@@ -61,7 +61,7 @@ $ pip install -r requirements.txt
 * [TensorRT Deployment](https://github.com/wang-xinyu/tensorrtx)
 
 
-## Environments
+## 环境
 
 YOLOv5可以在以下任何经过验证的最新环境中运行 (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
 
@@ -71,7 +71,8 @@ YOLOv5可以在以下任何经过验证的最新环境中运行 (with all depend
 - **Docker Image**. See [Docker Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/Docker-Quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 
-## Inference
+## 推理
+### 方法1
 detect.py在各种源文件上进行推理，并自动从  [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases) 下载模型并把推理结果保存到 `runs/detect`.
 ```bash
 $ python detect.py --source 0  # webcam
@@ -126,8 +127,8 @@ imgs = [img1, img2]  # batched list of images
 result = model(imgs)
 ```
 
-## Training
-
+## 训练模型
+### 从头开始训练
 训练模型，运行以下命令以重现结果[COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset (数据集自动下载). 训练时间： YOLOv5s/m/l/x are 2/4/6/8 天在单颗GPU上 V100 (multi-GPU times faster). Use the largest `--batch-size` your GPU allows (batch sizes shown for 16 GB devices).
 ```bash
 $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 64
@@ -137,6 +138,7 @@ $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 
 ```
 <img src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" width="900">
 
+### 继续训练
 训练自定义的数据,使用yolov5s.pt 预训练模型继续训练, 250张图片，3个epoch，耗时约1分钟
 ```buildoutcfg
 python train.py --img 640 --batch 16 --epochs 3 --data pdfmini.yaml --weights yolov5s.pt --nosave --cache
