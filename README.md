@@ -84,7 +84,8 @@ $ python detect.py --source 0  # webcam
                             http://112.50.243.8/PLTV/88888888/224/3221225900/1.m3u8  # http stream
 ```
 
-在以下示例图像上进行推理 `data/images`:
+
+示例2： 在以下示例图像上进行推理 `data/images`，  自动下载yolov5s.pt模型:
 ```bash
 $ python detect.py --source data/images --weights yolov5s.pt --conf 0.25
 
@@ -99,6 +100,11 @@ image 1/2 data/images/bus.jpg: 640x480 4 persons, 1 buss, 1 skateboards, Done. (
 image 2/2 data/images/zidane.jpg: 384x640 2 persons, 2 ties, Done. (0.012s)
 Results saved to runs/detect/exp
 Done. (0.113s)
+
+生成的结果如下，bbox已经在图片中框选出来
+#ls runs/detect/exp/
+bus.jpg    zidane.jpg
+
 ```
 <img src="https://user-images.githubusercontent.com/26833433/97107365-685a8d80-16c7-11eb-8c2e-83aac701d8b9.jpeg" width="500">  
 
@@ -120,7 +126,6 @@ imgs = [img1, img2]  # batched list of images
 result = model(imgs)
 ```
 
-
 ## Training
 
 训练模型，运行以下命令以重现结果[COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset (数据集自动下载). 训练时间： YOLOv5s/m/l/x are 2/4/6/8 天在单颗GPU上 V100 (multi-GPU times faster). Use the largest `--batch-size` your GPU allows (batch sizes shown for 16 GB devices).
@@ -132,6 +137,10 @@ $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 
 ```
 <img src="https://user-images.githubusercontent.com/26833433/90222759-949d8800-ddc1-11ea-9fa1-1c97eed2b963.png" width="900">
 
+训练自定义的数据,使用yolov5s.pt 预训练模型继续训练
+```buildoutcfg
+python train.py --img 640 --batch 16 --epochs 3 --data pdfmini.yaml --weights yolov5s.pt --nosave --cache
+```
 
 ## Citation
 
@@ -195,7 +204,7 @@ names: ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 't
 使用CVAT，makesense.ai或Labelbox之类的工具标注图像后，将label导出为YOLO格式，每个图像一个*.txt文件（如果图像中没有对象，则不需要*.txt文件）。 *.txt文件规范为： 
 ```buildoutcfg
 每个对象一行
-每行都是x_center y_center width height 格式。
+每行都是label x_center y_center width height 格式。
 框坐标必须采用标准化的xywh格式（0~1）。 如果您的框以像素为单位，则将x_center和width除以图像宽度，将y_center和height除以图像高度。
 类别编号为零索引（从0开始）。
 ```
