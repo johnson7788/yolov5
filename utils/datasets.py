@@ -130,7 +130,7 @@ class LoadImages:  # for inference
             files = [p]  # files
         else:
             raise Exception(f'ERROR: {p} does not exist')
-
+        #绝对路径组成的图片
         images = [x for x in files if x.split('.')[-1].lower() in img_formats]
         videos = [x for x in files if x.split('.')[-1].lower() in vid_formats]
         ni, nv = len(images), len(videos)
