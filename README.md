@@ -181,6 +181,15 @@ cat runs/train/exp/results.txt
 
 ```
 
+
+## 使用自定义的训练的api
+```buildoutcfg
+python yolo_api.py
+测试
+python yolo_api_test.py
+[['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0]], [0.9033942818641663, 0.8640206456184387], ['图像', '公式']], ['/Users/admin/git/yolov5/runs/api/images/A_Comprehensive_Survey_of_Grammar_Error_Correction0001-21.jpg', [[864.0, 132.0, 1608.0, 459.0], [865.0, 1862.0, 1602.0, 1944.0], [863.0, 1655.0, 1579.0, 1753.0], [115.0, 244.0, 841.0, 327.0], [116.0, 398.0, 837.0, 486.0], [124.0, 130.0, 847.0, 235.0]], [0.9183754920959473, 0.8920623660087585, 0.8884797692298889, 0.8873556852340698, 0.8276346325874329, 0.5401338934898376], ['表格', '公式', '公式', '公式', '公式', '公式']], ['/Users/admin/git/yolov5/runs/api/images/2007.158710001-09.jpg', [], [], []], ['/Users/admin/git/yolov5/runs/api/images/Relation-Aware_Collaborative_Learning_for_Uni%EF%AC%81ed_Aspect-Based_Sentiment_Analysis0001-02.jpg', [[170.0, 165.0, 818.0, 542.0]], [0.9089462757110596], ['表格']]]
+```
+
 ## Citation
 
 [![DOI](https://zenodo.org/badge/264818686.svg)](https://zenodo.org/badge/latestdoi/264818686)
@@ -212,7 +221,6 @@ $ cd yolov5
 $ pip install -r requirements.txt  # install dependencies
 ```
 ### 创建数据集
-
 ####  1. 创建dataset.yaml
 COCO128是一个小型教程数据集，由COCO train2017中的前128张图像组成。 这些相同的128张图像用于训练和验证，以验证我们的训练pipeline是否能够拟合。 如下所示，data/coco128.yaml是数据集配置文件，该文件定义了1）用于自动下载的可选下载命令/URL，2）训练图像目录的路径（或带有*的*.txt文件的路径的训练图像列表），3）与我们的验证图像相同，4）类别数量，5）类别名称列表：
 ```buildoutcfg

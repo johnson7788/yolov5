@@ -71,7 +71,7 @@ def detect(save_img=False):
         t1 = time_synchronized()
         # pred torch.Size([1, 18900, 85]), 85代表:  (x1, y1, x2, y2, conf, cls), 这里的cls是80个类别
         pred = model(img, augment=opt.augment)[0]
-        # Apply NMS, pred 是一个列表，里面是,一个元素代表一张图片, [bbox_num, other], other代表(x1, y1, x2, y2, conf, max_cls_prob) eg: torch.Size([5, 6])
+        # Apply NMS, pred 是一个列表，里面是,一个元素代表一张图片, [bbox_num, other], other代表(x1, y1, x2, y2, conf置信度, 类别的的id) eg: torch.Size([5, 6])
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
         t2 = time_synchronized()
 
@@ -101,7 +101,7 @@ def detect(save_img=False):
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
-                # Write results
+                # Write results, cls是类别id， conf是置信度，xyxy是bbox坐标
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh

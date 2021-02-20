@@ -46,6 +46,7 @@ class YOLOModel(object):
     def __init__(self, verbose=0):
         self.verbose = verbose
         self.label_list = ['table', 'figure', 'equation']
+        self.label_list_cn = ['表格', '图像', '公式']
         #给每个类别的候选框设置一个颜色
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.label_list]
         self.num_labels = len(self.label_list)
@@ -60,7 +61,7 @@ class YOLOModel(object):
         self.weights = 'runs/train/exp/weights/last.pt'      # 'yolov5s.pt'
         self.source = 'images_dir'  #图片目录
         self.img_size = 640   #像素
-        self.conf_thres = 0.25  #置信度
+        self.conf_thres = 0.5  #置信度, 大于这个置信度的才类别才取出来
         self.iou_thres = 0.45  #IOU的NMS阈值
         self.view_img = False   #是否显示图片的结果
         self.save_img = True    #保存图片预测结果
@@ -109,8 +110,9 @@ class YOLOModel(object):
 
     def detect(self, data):
         """
+        返回的bboxes是实际的坐标，x1，y1，x2，y2，是左上角和右下角的坐标
         :param data: 图片数据的列表 [image1, image2]
-        :return:
+        :return: [[images, bboxes, confidences, labels],[images, bboxes,confidences, labels],...] bboxes是所有的bboxes, confidence是置信度， labels是所有的bboxes对应的label，
         """
         #检查设置的图片的大小和模型的步长是否能整除
         imgsz = check_img_size(self.img_size, s=self.stride)  # check img_size
@@ -121,8 +123,9 @@ class YOLOModel(object):
             images.append(image)
         #设置数据集
         dataset = LoadImages(path=self.image_dir, img_size=imgsz, stride=self.stride)
-        # 这里我们重设下images，我们只要自己需要的images既可
+        # 这里我们重设下images，我们只要自己需要的images既可, dataset.nf, 即number_files, 文件数量也需要修改下
         dataset.files = images
+        dataset.nf = len(images)
         # 设置模型
         predict_model = self.predict_model
         # 运行推理
@@ -131,7 +134,8 @@ class YOLOModel(object):
         #计算耗时
         t0 = time.time()
         # path是图片的路径，img是图片的改变size后的numpy格式[channel, new_height,new_witdh], im0s是原始的图片,[height, width,channel], eg: (2200, 1700, 3), vid_cap 是None如果是图片，只对视频有作用
-        for path, img, im0s, vid_cap in dataset:
+        results = []
+        for idx, (path, img, im0s, vid_cap) in enumerate(dataset):
             # 如果是GPU，会放到GPU上
             img = torch.from_numpy(img).to(self.device)
             #转换成float
@@ -143,50 +147,58 @@ class YOLOModel(object):
                 img = img.unsqueeze(0)
             #开始推理, time_synchronized是GPU的同步
             t1 = time_synchronized()
-            # pred模型的预测结果 [batch_size,x,x ] eg: torch.Size([1, 20160, 8]), 8代表 (x1, y1, x2, y2, conf, cls1, cls2, cls3...), 前4个是bbox坐标，conf是置信度，cls是类别的，cls1代表是类别1的概率
+            # pred模型的预测结果 [batch_size,hidden_size, other] eg: torch.Size([1, 20160, 8]), 8代表 (x1, y1, x2, y2, conf, cls1, cls2, cls3...), 前4个是bbox坐标，conf是置信度，cls是类别的，cls1代表是类别1的概率
             pred = predict_model(img, augment=False)[0]
 
-            #使用 NMS
+            #使用 NMS, pred 是一个列表，里面是,一个元素代表一张图片, 一个元素的维度是 [bbox_num, other], other代表(x1, y1, x2, y2, conf, max_cls_prob) eg: torch.Size([5, 6])
             pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, classes=self.classes, agnostic=self.agnostic_nms)
             t2 = time_synchronized()
 
-            # Process detections
+            # 处理 detections,i是索引，det是所有的bbox, torch.Size([3, 6])，代表3个bbox，6代表 (x1, y1, x2, y2, 置信度, 类别id)
             for i, det in enumerate(pred):  # detections per image
-                # s 是初始化一个空字符串，用于打印预测结果，im0是原始图片, frame是对于视频而言的
+                # s 是初始化一个空字符串，用于打印预测结果，im0是原始图片, frame是对于视频而言的, 这里pred一定是以个元素，因为我们迭代的是一张图片
                 p, s, im0, frame = path, '', im0s, getattr(dataset, 'frame', 0)
                 #p原始图片的绝对路径
                 p = Path(p)  # to Path
                 save_path = os.path.join(self.predict_dir, p.name)  #预测后的保存的图片的路径
-                s += '图片尺寸%gx%g, ' % img.shape[2:]  # print string, eg '640x480 '
+                s += ' 图片尺寸%gx%g, ' % img.shape[2:]  # print string, eg '640x480 '
                 # 图片的width,height, width, height, eg: tensor([1700, 2200, 1700, 2200]), 用于下面的归一化
-                gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+                #如果det不为空，说明检测到了bbox，检测到了目标
                 if len(det):
                     # bbox 放大到原始图像的大小，从img_size 到原始图像 im0 尺寸， bbox左上角的x1，y1, 右下角的x2,y2
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
-
-                    #最后一个维度的最后一位是预测的结果
+                    # eg: [[832.0, 160.0, 1495.0, 610.0, 0.9033942818641663], [849.0, 1918.0, 1467.0, 2016.0, 0.8640206456184387], [204.0, 0.0, 798.0, 142.0, 0.2842876613140106]]
+                    bboxes = det[:, :4].tolist()
+                    confidences = det[:, 4].tolist()
+                    # eg: ['figure', 'equation', 'figure']
+                    labels = [self.label_list_cn[i] for i in map(int, det[:, -1].tolist())]
+                    #图片的名称，bboex，置信度，标签，都加到结果
+                    results.append([images[idx], bboxes, confidences, labels])
+                    #最后一个维度的最后一位是预测的结果, unique是为了统计多个相同的结果
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
-                        s += f"{n}个{self.label_list[int(c)]}{'s' * (n > 1)} bbox, "  # add to string
+                        s += f"{n}个{self.label_list[int(c)]}{'s' * (n > 1)} bbox, "  # eg: 2个figures bbox
 
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
-                        if self.save_img or self.view_img:  # Add bbox to image
+                        if self.save_img or self.view_img:  # 给图片添加bbox，画到图片上
                             label = f'{self.label_list[int(cls)]} {conf:.2f}'
                             plot_one_box(xyxy, im0, label=label, color=self.colors[int(cls)], line_thickness=3)
 
                     # Print time (inference + NMS)
                     print(f'{s}完成. 耗时({t2 - t1:.3f}s)')
                 else:
+                    #如果没有匹配到，那么为空
+                    results.append([images[idx], [], [], []])
                     print(f'{s}完成. 没有发现目标,耗时({t2 - t1:.3f}s)')
 
-                # Save results (image with detections)
+                # 保存图片的识别结果到目录下
                 if self.save_img:
                     if dataset.mode == 'image':
                         cv2.imwrite(save_path, im0)
                     print(f"保存结果到 {self.predict_dir}{s}")
-
         print(f'Done. ({time.time() - t0:.3f}s)')
+        return results
 
     def do_train(self, data):
         """
@@ -204,7 +216,13 @@ def predict():
     接收POST请求，获取data参数
     Args:
         test_data: 需要预测的数据，是一个图片的url列表, [images1, images2]
-    Returns: 返回格式是 [(predicted_label, predict_score),...]
+    Returns: 返回格式是[[images, bboxes, confidences, labels],[images, bboxes,confidences, labels],...]
+    results = {list: 4} [['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]], [0.9033942818641663, 0.8640206456184387, 0.2842876613140106], ['figure', 'equation', 'figure']], ['/Users/admin/git/yolov5/runs/api/images/A_Comprehensive_Survey_of_Grammar_Error_Correction0001-21.jpg', [[864.0, 132.0, 1608.0, 459.0], [865.0, 1862.0, 1602.0, 1944.0], [863.0, 1655.0, 1579.0, 1753.0], [115.0, 244.0, 841.0, 327.0], [116.0, 398.0, 837.0, 486.0], [124.0, 130.0, 847.0, 235.0], [119.0, 1524.0, 830.0, 1616.0], [161.0, 244.0, 799.0, 447.0]], [0.9183754920959473, 0.8920623660087585, 0.8884797692298889, 0.8873556852340698, 0.8276346325874329, 0.5401338934898376, 0.33260053396224976, 0.2832690477371216], ['table', 'equation', 'equation', 'equation', 'equation', 'equation', 'equation', 'equation']], ['/Users/admin/git/yolov5/runs/api/images/2007.158710001-09.jpg', [], ...
+     0 = {list: 4} ['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]], [0.9033942818641663, 0.8640206456184387, 0.2842876613140106], ['figure', 'equation', 'figure']]
+      0 = {str} '/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg'
+      1 = {list: 3} [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]]
+      2 = {list: 3} [0.9033942818641663, 0.8640206456184387, 0.2842876613140106]
+      3 = {list: 3} ['figure', 'equation', 'figure']
     """
     jsonres = request.get_json()
     test_data = jsonres.get('data', None)
