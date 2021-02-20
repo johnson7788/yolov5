@@ -140,10 +140,11 @@ $ python train.py --data coco.yaml --cfg yolov5s.yaml --weights '' --batch-size 
 训练自定义的数据,使用yolov5s.pt 预训练模型继续训练, 250张图片，3个epoch，耗时约1分钟
 ```buildoutcfg
 python train.py --img 640 --batch 16 --epochs 3 --data pdfmini.yaml --weights yolov5s.pt --nosave --cache
+python train.py --batch 16 --epochs 100 --data pdfmini.yaml --weights yolov5s.pt --nosave --cache
 
 训练结果
-tree runs/train/exp2/
-runs/train/exp2/
+tree runs/train/exp/
+runs/train/exp/
 ├── confusion_matrix.png
 ├── events.out.tfevents.1613795812.wacserver3.21644.0
 ├── F1_curve.png
@@ -168,6 +169,14 @@ runs/train/exp2/
 └── weights
     ├── best.pt
     └── last.pt
+```
+文件结果展示
+```buildoutcfg
+cat runs/train/exp/results.txt
+    epoch/total  gpu_mem（占用的GPU)  box      obj      cls         total        targets   img_size  
+     98/99     3.03G                0.02208   0.01128  0.002249   0.03561        45       640    0.9738     0.988    0.9928    0.7999   0.01238  0.005041 0.0005524
+     99/99     3.03G                 0.02176   0.01176  0.003855   0.03737        44       640    0.9491    0.9808    0.9848    0.7529    0.0135  0.005859 0.0007229                  
+
 ```
 
 ## Citation
