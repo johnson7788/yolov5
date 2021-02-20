@@ -161,7 +161,8 @@ class YOLOModel(object):
                 #p原始图片的绝对路径
                 p = Path(p)  # to Path
                 save_path = os.path.join(self.predict_dir, p.name)  #预测后的保存的图片的路径
-                s += ' 图片尺寸%gx%g, ' % img.shape[2:]  # print string, eg '640x480 '
+                s += ' 预测的图片尺寸高度宽度%gx%g，' % img.shape[2:] # print string, eg '640x480 '
+                s += '原始尺寸为高度宽度%sx%s，' % im0.shape[:2]  # print string, eg '640x480 '
                 # 图片的width,height, width, height, eg: tensor([1700, 2200, 1700, 2200]), 用于下面的归一化
                 #如果det不为空，说明检测到了bbox，检测到了目标
                 if len(det):
