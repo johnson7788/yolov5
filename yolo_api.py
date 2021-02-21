@@ -12,6 +12,7 @@
 ######################################################
 
 import logging
+import re
 
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -  %(message)s',
@@ -119,13 +120,18 @@ class YOLOModel(object):
         #下载数据集, images保存图片的本地的路径
         images = []
         for url in data:
-            image = self.download_file(url, self.image_dir)
+            if url.startswith('http'):
+                image = self.download_file(url, self.image_dir)
+            else:
+                #不是http的格式的，是本地文件的，那么直接使用即可
+                image = url
             images.append(image)
         #设置数据集
         dataset = LoadImages(path=self.image_dir, img_size=imgsz, stride=self.stride)
         # 这里我们重设下images，我们只要自己需要的images既可, dataset.nf, 即number_files, 文件数量也需要修改下
         dataset.files = images
         dataset.nf = len(images)
+        dataset.video_flag = [False] * len(images)
         # 设置模型
         predict_model = self.predict_model
         # 运行推理
@@ -201,6 +207,65 @@ class YOLOModel(object):
         print(f'Done. ({time.time() - t0:.3f}s)')
         return results
 
+    def baidu_ocr(self, image_byte):
+        """
+        返回json格式的预测结果
+        :param image_byte, 图片的bytes格式
+        :return: string 格式的识别结果
+        """
+        import base64
+        access_token = os.environ['BAIDU_TOKEN']
+        request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
+        # 二进制方式打开图片文件
+        # 图片识别成文字
+        results = ''
+        img = base64.b64encode(image_byte)
+        params = {"image": img}
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response.status_code == 200:
+            res = response.json()
+            for w in res['words_result']:
+                results = results + w['words'] + '\n'
+        return results
+
+    def extract(self, detect_data, extract_dir):
+        """
+        对detect得到的结果，截取其中目标检测的内容，保存到extract_dir
+        对于截取的图片的命名，需要通过OCR识别,需要调用baidu OCR的api
+        :param detect_data: 是dectect函数的结果
+        :param extract_dir: 提取图片中的表格，公式，图片，裁剪出来，保存到这个目录中
+        :return:
+        """
+        for img_idx, data in enumerate(detect_data):
+            images, bboxes, confidences, labels = data
+            img = cv2.imread(images)
+            for box_idx, (bbox, label) in enumerate(zip(bboxes, labels)):
+                #每个候选框识别图片的结果
+                x1, y1, x2, y2 = list(map(int, bbox))
+                #截取图片
+                crop_img = img[y1:y2, x1:x2]
+                #识别图片，获取名字
+                retval, buffer = cv2.imencode('.jpg', crop_img)
+                img_bytes = buffer.tostring()
+                ocr_res = self.baidu_ocr(image_byte=img_bytes)
+                #图片名字
+                en_label = self.label_list[self.label_list_cn.index(label)]
+                if en_label in ocr_res.lower():
+                    ocr_res = ocr_res.lower()
+                    p = re.compile(r'(?<=\b%s )\d+\b' % en_label)
+                    res = re.findall(p, ocr_res)
+                    if res:
+                        name = f"image{img_idx}_{en_label}_{res[0]}.jpg"
+                    else:
+                        name = f"image{img_idx}_{en_label}_unknown.jpg"
+                else:
+                    name = f"image{img_idx}_{en_label}_unknown.jpg"
+                #保存图片
+                name_path = os.path.join(extract_dir,name)
+                cv2.imwrite(name_path, crop_img)
+
     def do_train(self, data):
         """
         训练模型, 数据集分成2部分，训练集和验证集, 默认比例9:1
@@ -232,6 +297,28 @@ def predict():
     logger.info(f"预测的结果是:{results}")
     return jsonify(results)
 
+@app.route("/api/extract", methods=['POST'])
+def extract():
+    """
+    接收POST请求，获取data参数
+    Args:
+        test_data: 需要预测的数据，是一个图片的url列表, [images1, images2]
+    Returns: 返回格式是[[images, bboxes, confidences, labels],[images, bboxes,confidences, labels],...]
+    results = {list: 4} [['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]], [0.9033942818641663, 0.8640206456184387, 0.2842876613140106], ['figure', 'equation', 'figure']], ['/Users/admin/git/yolov5/runs/api/images/A_Comprehensive_Survey_of_Grammar_Error_Correction0001-21.jpg', [[864.0, 132.0, 1608.0, 459.0], [865.0, 1862.0, 1602.0, 1944.0], [863.0, 1655.0, 1579.0, 1753.0], [115.0, 244.0, 841.0, 327.0], [116.0, 398.0, 837.0, 486.0], [124.0, 130.0, 847.0, 235.0], [119.0, 1524.0, 830.0, 1616.0], [161.0, 244.0, 799.0, 447.0]], [0.9183754920959473, 0.8920623660087585, 0.8884797692298889, 0.8873556852340698, 0.8276346325874329, 0.5401338934898376, 0.33260053396224976, 0.2832690477371216], ['table', 'equation', 'equation', 'equation', 'equation', 'equation', 'equation', 'equation']], ['/Users/admin/git/yolov5/runs/api/images/2007.158710001-09.jpg', [], ...
+     0 = {list: 4} ['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]], [0.9033942818641663, 0.8640206456184387, 0.2842876613140106], ['figure', 'equation', 'figure']]
+      0 = {str} '/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg'
+      1 = {list: 3} [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]]
+      2 = {list: 3} [0.9033942818641663, 0.8640206456184387, 0.2842876613140106]
+      3 = {list: 3} ['figure', 'equation', 'figure']
+    """
+    jsonres = request.get_json()
+    test_data = jsonres.get('data', None)
+    extract_dir = jsonres.get('extract_dir', None)
+    detect_data = model.detect(test_data)
+    results = model.extract(detect_data=detect_data, extract_dir=extract_dir)
+    logger.info(f"收到的数据是:{test_data}")
+    logger.info(f"预测的结果是:{results}")
+    return jsonify(results)
 
 @app.route("/api/train", methods=['POST'])
 def train():
@@ -246,8 +333,6 @@ def train():
     logger.info(f"收到的数据是:{data}, 进行训练")
     results = model.do_train(data)
     return jsonify(results)
-
-
 
 
 

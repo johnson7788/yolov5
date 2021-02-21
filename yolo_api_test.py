@@ -22,6 +22,21 @@ def dopredict(test_data, host="127.0.0.1"):
     result = r.json()
     print(result)
     return result
+def doextract(extract_data, extract_dir='/Users/admin/tmp', host="127.0.0.1"):
+    """
+    预测结果
+    :param extract_data:
+    :param extract_dir:
+    :return:
+    """
+    url = f"http://{host}:5000/api/extract"
+    # 请求识别pdf文档中的表格，图片，公式的api
+    data = {'data': extract_data, 'extract_dir': extract_dir}
+    headers = {'content-type': 'application/json'}
+    r = requests.post(url, headers=headers, data=json.dumps(data), timeout=360)
+    result = r.json()
+    print(result)
+    return result
 
 def dotrain(train_data, host="127.0.0.1"):
     """
@@ -38,6 +53,9 @@ def dotrain(train_data, host="127.0.0.1"):
     print(result)
     return result
 
+
 if __name__ == '__main__':
-    test_data = ['http://127.0.0.1:9090/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg','http://127.0.0.1:9090/A_Comprehensive_Survey_of_Grammar_Error_Correction0001-21.jpg','http://127.0.0.1:9090/2007.158710001-09.jpg','http://127.0.0.1:9090/Relation-Aware_Collaborative_Learning_for_Uni%EF%AC%81ed_Aspect-Based_Sentiment_Analysis0001-02.jpg']
-    dopredict(host="127.0.0.1", test_data=test_data)
+    # test_data = ['http://127.0.0.1:9090/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg','http://127.0.0.1:9090/A_Comprehensive_Survey_of_Grammar_Error_Correction0001-21.jpg','http://127.0.0.1:9090/2007.158710001-09.jpg','http://127.0.0.1:9090/Relation-Aware_Collaborative_Learning_for_Uni%EF%AC%81ed_Aspect-Based_Sentiment_Analysis0001-02.jpg']
+    # dopredict(host="127.0.0.1", test_data=test_data)
+    extract_data = ['/opt/labeled_pdf/images/bert-PKD0001-08_782a.jpg', '/opt/labeled_pdf/images/attention-is-all-you-need-Paper0001-05_080c.jpg']
+    doextract(extract_data=extract_data)
