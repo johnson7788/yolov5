@@ -52,7 +52,7 @@ def detect(save_img=False):
         save_img = True
         dataset = LoadImages(source, img_size=imgsz, stride=stride)
 
-    # Get names and colors, names就是类别列表，是我们在data/*.yaml中定义的类别的列表
+    # Get names and colors
     names = model.module.names if hasattr(model, 'module') else model.names
     colors = [[random.randint(0, 255) for _ in range(3)] for _ in names]
 
@@ -69,9 +69,9 @@ def detect(save_img=False):
 
         # Inference
         t1 = time_synchronized()
-        # pred torch.Size([1, 18900, 85]), 85代表:  (x1, y1, x2, y2, conf, cls), 这里的cls是80个类别
         pred = model(img, augment=opt.augment)[0]
-        # Apply NMS, pred 是一个列表，里面是,一个元素代表一张图片, [bbox_num, other], other代表(x1, y1, x2, y2, conf置信度, 类别的的id) eg: torch.Size([5, 6])
+
+        # Apply NMS
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
         t2 = time_synchronized()
 
@@ -90,18 +90,17 @@ def detect(save_img=False):
             save_path = str(save_dir / p.name)  # img.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # img.txt
             s += '%gx%g ' % img.shape[2:]  # print string
-            # 图片的width,height, width, height, eg: tensor([1700, 2200, 1700, 2200]), 用于下面的归一化
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             if len(det):
-                # Rescale boxes from img_size to im0 size, bbox左上角的x1，y1, 右下角的x2,y2
+                # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
 
-                # Print results, 类别
+                # Print results
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
-                # Write results, cls是类别id， conf是置信度，xyxy是bbox坐标
+                # Write results
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -111,7 +110,6 @@ def detect(save_img=False):
 
                     if save_img or view_img:  # Add bbox to image
                         label = f'{names[int(cls)]} {conf:.2f}'
-                        # xyxy是bbox，im0是图片的numpy格式，label是预测的标签'person 0.40', color是bbox的颜色，line_thickness是bbox的线条宽度
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
 
             # Print time (inference + NMS)
