@@ -42,6 +42,7 @@ from flask import Flask, request, jsonify, abort
 
 app = Flask(__name__)
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 class YOLOModel(object):
     def __init__(self, verbose=0):
