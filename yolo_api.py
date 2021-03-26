@@ -260,25 +260,22 @@ class YOLOModel(object):
                 ocr_res = self.baidu_ocr(image_byte=img_bytes)
                 #图片名字
                 en_label = self.label_list[self.label_list_cn.index(label)]
-                if en_label in ocr_res.lower():
-                    ocr_res = ocr_res.lower()
-                    p = re.compile(r'(?<=\b%s )\d+\b' % en_label)
+                ocr_res = ocr_res.lower()
+                p = re.compile(r'(?<=\b%s )\d+\b' % en_label)
+                if en_label in ['table', 'figure']:
                     res = re.findall(p, ocr_res)
                     if res:
-                        name = f"image{img_idx}_{en_label}_{res[0]}.jpg"
+                        name = f"image{img_idx}{box_idx}_{en_label}_{res[0]}.jpg"
                     else:
-                        if en_label == 'equation':
-                            #如果是公式，那么命名的顺序是有区别的，例如识别的是 了≡Wqj-0+1:    (1)
-                            num_res = re.findall('(?<=\()\d+(?=\))', ocr_res)
-                            if res:
-                                equation_num = num_res[-1]
-                                name = f"image{img_idx}_{en_label}_{equation_num}.jpg"
-                            else:
-                                name = f"image{img_idx}_{en_label}_xxxx.jpg"
-                        else:
-                            name = f"image{img_idx}_{en_label}_unknown.jpg"
+                        name = f"image{img_idx}{box_idx}_{en_label}_unknown.jpg"
                 else:
-                    name = f"image{img_idx}_{en_label}_unknown.jpg"
+                    #是公式，那么命名的顺序是有区别的，例如识别的是 了≡Wqj-0+1:    (1)
+                    num_res = re.findall('(?<=\()\d+(?=\))', ocr_res)
+                    if num_res:
+                        equation_num = num_res[-1]
+                        name = f"image{img_idx}{box_idx}_equation_{equation_num}.jpg"
+                    else:
+                        name = f"image{img_idx}{box_idx}_equation_xxxx.jpg"
                 #保存图片
                 name_path = os.path.join(extract_dir,name)
                 cv2.imwrite(name_path, crop_img)
