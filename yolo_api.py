@@ -13,6 +13,7 @@
 
 import logging
 import re
+import sys
 
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -  %(message)s',
@@ -215,7 +216,9 @@ class YOLOModel(object):
         :return: string 格式的识别结果
         """
         import base64
-        access_token = os.environ['BAIDU_TOKEN']
+        sys.path.append('/opt/salt-daily-check/bin')
+        from baidutoken import gettoken
+        access_token = gettoken()
         request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
         # 二进制方式打开图片文件
         # 图片识别成文字
@@ -227,6 +230,9 @@ class YOLOModel(object):
         response = requests.post(request_url, data=params, headers=headers)
         if response.status_code == 200:
             res = response.json()
+            if res.get("words_result") is None:
+                print(f"错误: 百度OCR返回的消息是: {res}")
+                sys.exit(0)
             for w in res['words_result']:
                 results = results + w['words'] + '\n'
         return results
@@ -334,8 +340,6 @@ def train():
     logger.info(f"收到的数据是:{data}, 进行训练")
     results = model.do_train(data)
     return jsonify(results)
-
-
 
 if __name__ == "__main__":
     model = YOLOModel()
