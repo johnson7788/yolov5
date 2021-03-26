@@ -267,7 +267,16 @@ class YOLOModel(object):
                     if res:
                         name = f"image{img_idx}_{en_label}_{res[0]}.jpg"
                     else:
-                        name = f"image{img_idx}_{en_label}_unknown.jpg"
+                        if en_label == 'equation':
+                            #如果是公式，那么命名的顺序是有区别的，例如识别的是 了≡Wqj-0+1:    (1)
+                            num_res = re.findall('(?<=\()\d+(?=\))', ocr_res)
+                            if res:
+                                equation_num = num_res[-1]
+                                name = f"image{img_idx}_{en_label}_{equation_num}.jpg"
+                            else:
+                                name = f"image{img_idx}_{en_label}_xxxx.jpg"
+                        else:
+                            name = f"image{img_idx}_{en_label}_unknown.jpg"
                 else:
                     name = f"image{img_idx}_{en_label}_unknown.jpg"
                 #保存图片
