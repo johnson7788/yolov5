@@ -265,17 +265,17 @@ class YOLOModel(object):
                 if en_label in ['table', 'figure']:
                     res = re.findall(p, ocr_res)
                     if res:
-                        name = f"image{img_idx}{box_idx}_{en_label}_{res[0]}.jpg"
+                        name = f"image{img_idx}_{box_idx}_{en_label}_{res[0]}.jpg"
                     else:
-                        name = f"image{img_idx}{box_idx}_{en_label}_unknown.jpg"
+                        name = f"image{img_idx}_{box_idx}_{en_label}_x1.jpg"
                 else:
                     #是公式，那么命名的顺序是有区别的，例如识别的是 了≡Wqj-0+1:    (1)
                     num_res = re.findall('(?<=\()\d+(?=\))', ocr_res)
                     if num_res:
                         equation_num = num_res[-1]
-                        name = f"image{img_idx}{box_idx}_equation_{equation_num}.jpg"
+                        name = f"image{img_idx}_{box_idx}_equation_{equation_num}.jpg"
                     else:
-                        name = f"image{img_idx}{box_idx}_equation_xxxx.jpg"
+                        name = f"image{img_idx}_{box_idx}_equation_x2.jpg"
                 #保存图片
                 name_path = os.path.join(extract_dir,name)
                 cv2.imwrite(name_path, crop_img)
