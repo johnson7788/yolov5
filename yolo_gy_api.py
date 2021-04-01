@@ -48,8 +48,8 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class YOLOModel(object):
     def __init__(self, verbose=0):
         self.verbose = verbose
-        self.label_list = ['table', 'figure', 'equation']
-        self.label_list_cn = ['表格', '图像', '公式']
+        self.label_list = ['A1', 'A2', 'A3', 'A4','A5' ,'A6' ,'A7' ,'B1' ,'B2' ,'B3', 'B4','B5' ,'B6' ,'B7', 'C1', 'Keyboard']
+        self.label_list_cn = ['A1', 'A2', 'A3', 'A4','A5' ,'A6' ,'A7' ,'B1' ,'B2' ,'B3', 'B4','B5' ,'B6' ,'B7', 'C1', 'Keyboard']
         #给每个类别的候选框设置一个颜色
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.label_list]
         self.num_labels = len(self.label_list)
@@ -61,8 +61,7 @@ class YOLOModel(object):
         # 预测的batch_size大小
         self.predict_batch_size = 16
         #模型的名称或路径
-        self.weights = 'runs/train/pdf/weights/last.pt'      # 'yolov5s.pt'
-        # self.weights = 'runs/train/exp2/weights/last.pt'      # 'yolov5s.pt'
+        self.weights = 'runs/train/gy/weights/last.pt'      # 'yolov5s.pt'
         self.source = 'images_dir'  #图片目录
         self.img_size = 640   #像素
         self.conf_thres = 0.5  #置信度, 大于这个置信度的才类别才取出来
