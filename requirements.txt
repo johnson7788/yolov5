@@ -12,12 +12,8 @@ torchvision>=0.8.1
 tqdm>=4.41.0
 
 # logging -------------------------------------
-<<<<<<< HEAD
-wandb
-=======
 tensorboard>=2.4.1
 # wandb
->>>>>>> upstream/master
 
 # plotting ------------------------------------
 seaborn>=0.11.0
