@@ -205,7 +205,7 @@ class YOLOModel(object):
                 if self.save_img:
                     if dataset.mode == 'image':
                         cv2.imwrite(save_path, im0)
-                    print(f"保存结果到 {self.predict_dir}{s}")
+                    print(f"保存识别结果到 {save_path}{s}")
         print(f'Done. ({time.time() - t0:.3f}s)')
         return results
 
