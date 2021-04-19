@@ -261,6 +261,7 @@ names: ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 't
 <img src="https://user-images.githubusercontent.com/26833433/98809572-0bc4d580-241e-11eb-844e-eee756f878c2.png" width="600">
 
 #### 3.整理图片和标签的文件夹位置
+注意： 配置文件中的class names，要和/labeled_gy/images/classes.txt下的对应
 根据以下样本整理训练和val图像和标签。 在此样本中，我们假设/coco128在/yolov5目录旁边。 YOLOv5通过用/labels/替换images目录中的/images/的最后一个实例，自动为每个图像定位label。 例如： 
 ```buildoutcfg
 #只有目录和后缀不一样
