@@ -14,7 +14,6 @@
 import logging
 import re
 import sys
-import json
 
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s -  %(message)s',
@@ -49,8 +48,8 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class YOLOModel(object):
     def __init__(self, verbose=0):
         self.verbose = verbose
-        self.label_list = ['table', 'figure', 'equation']
-        self.label_list_cn = ['表格', '图像', '公式']
+        self.label_list = ['piano_key', 'piano']
+        self.label_list_cn = ['琴键','钢琴']
         #给每个类别的候选框设置一个颜色
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.label_list]
         self.num_labels = len(self.label_list)
@@ -62,11 +61,10 @@ class YOLOModel(object):
         # 预测的batch_size大小
         self.predict_batch_size = 16
         #模型的名称或路径
-        self.weights = 'runs/train/pdf/weights/last.pt'      # 'yolov5s.pt'
-        # self.weights = 'runs/train/exp2/weights/last.pt'      # 'yolov5s.pt'
+        self.weights = 'runs/train/gy/weights/last.pt'      # 'yolov5s.pt'
         self.source = 'images_dir'  #图片目录
         self.img_size = 640   #像素
-        self.conf_thres = 0.5  #置信度, 大于这个置信度的才类别才取出来
+        self.conf_thres = 0.05  #置信度, 大于这个置信度的才类别才取出来
         self.iou_thres = 0.45  #IOU的NMS阈值
         self.view_img = False   #是否显示图片的结果
         self.save_img = True    #保存图片预测结果
@@ -81,7 +79,6 @@ class YOLOModel(object):
         if not os.path.exists(self.predict_dir):
             os.makedirs(self.predict_dir)
         self.load_predict_model()
-        self.access_token =self.baidu_token()
 
     def load_train_model(self):
         """
@@ -212,11 +209,6 @@ class YOLOModel(object):
         print(f'Done. ({time.time() - t0:.3f}s)')
         return results
 
-    def baidu_token(self):
-        sys.path.append('/opt/salt-daily-check/bin')
-        from baidutoken import gettoken
-        access_token = gettoken()
-        return access_token
     def baidu_ocr(self, image_byte):
         """
         返回json格式的预测结果
@@ -224,13 +216,16 @@ class YOLOModel(object):
         :return: string 格式的识别结果
         """
         import base64
+        sys.path.append('/opt/salt-daily-check/bin')
+        from baidutoken import gettoken
+        access_token = gettoken()
         request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
         # 二进制方式打开图片文件
         # 图片识别成文字
         results = ''
         img = base64.b64encode(image_byte)
         params = {"image": img}
-        request_url = request_url + "?access_token=" + self.access_token
+        request_url = request_url + "?access_token=" + access_token
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         response = requests.post(request_url, data=params, headers=headers)
         if response.status_code == 200:
@@ -242,40 +237,17 @@ class YOLOModel(object):
                 results = results + w['words'] + '\n'
         return results
 
-    def paddle_ocr(self, image_path):
-        """
-        使用paddle的程序ocr，首先启动paddle 的api，监听的端口6688
-        :param image_path:
-        :type image_path:
-        :return:
-        :rtype:
-        """
-        request_url = 'http://127.0.0.1:6688/api/path'
-        image = os.path.abspath(image_path)
-        headers = {'content-type': 'application/json'}
-        data = {"images": image}
-        r = requests.post(request_url, data=json.dumps(data), headers=headers)
-        jsonres = r.json()
-        results = ''
-        image_res = jsonres[0]['ocr_result']
-        for every in image_res:
-            words = every['words']
-            results = results + words + '\n'
-        return results
-
-    def extract(self, detect_data, extract_dir, ocr='baidu'):
+    def extract(self, detect_data, extract_dir):
         """
         对detect得到的结果，截取其中目标检测的内容，保存到extract_dir
         对于截取的图片的命名，需要通过OCR识别,需要调用baidu OCR的api
         :param detect_data: 是dectect函数的结果
         :param extract_dir: 提取图片中的表格，公式，图片，裁剪出来，保存到这个目录中
-        :param ocr: 使用baidu的ocr，还是paddle的ocr
         :return:
         """
         for img_idx, data in enumerate(detect_data):
             images, bboxes, confidences, labels = data
             img = cv2.imread(images)
-            print(f"开始对图片：{images} 进行OCR的识别和整理")
             for box_idx, (bbox, label) in enumerate(zip(bboxes, labels)):
                 #每个候选框识别图片的结果
                 x1, y1, x2, y2 = list(map(int, bbox))
@@ -284,12 +256,7 @@ class YOLOModel(object):
                 #识别图片，获取名字
                 retval, buffer = cv2.imencode('.jpg', crop_img)
                 img_bytes = buffer.tostring()
-                if ocr == 'baidu':
-                    ocr_res = self.baidu_ocr(image_byte=img_bytes)
-                else:
-                    tmp_img = '/tmp/will_recog.jpg'
-                    cv2.imwrite(tmp_img, crop_img)
-                    ocr_res = self.paddle_ocr(image_path=tmp_img)
+                ocr_res = self.baidu_ocr(image_byte=img_bytes)
                 #图片名字
                 en_label = self.label_list[self.label_list_cn.index(label)]
                 ocr_res = ocr_res.lower()
@@ -382,4 +349,4 @@ def train():
 
 if __name__ == "__main__":
     model = YOLOModel()
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
