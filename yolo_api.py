@@ -281,19 +281,26 @@ class YOLOModel(object):
                 x1, y1, x2, y2 = list(map(int, bbox))
                 #截取图片
                 crop_img = img[y1:y2, x1:x2]
-                #识别图片，获取名字
-                retval, buffer = cv2.imencode('.jpg', crop_img)
-                img_bytes = buffer.tostring()
+                #图片名字
+                en_label = self.label_list[self.label_list_cn.index(label)]
+                # 识别公式图片时要识别公式图片的后半部分，截取约1/10处
+                if en_label == 'equation':
+                    height, width, channel = crop_img.shape
+                    recog_img = crop_img[:, int(width*0.9):width, :]
+                else:
+                    recog_img = crop_img
                 if ocr == 'baidu':
+                    retval, buffer = cv2.imencode('.jpg', recog_img)
+                    img_bytes = buffer.tostring()
                     ocr_res = self.baidu_ocr(image_byte=img_bytes)
                 else:
                     tmp_img = '/tmp/will_recog.jpg'
-                    cv2.imwrite(tmp_img, crop_img)
+                    cv2.imwrite(tmp_img, recog_img)
                     ocr_res = self.paddle_ocr(image_path=tmp_img)
-                #图片名字
-                en_label = self.label_list[self.label_list_cn.index(label)]
+                #OCR识别结果
                 ocr_res = ocr_res.lower()
                 p = re.compile(r'(?<=\b%s )\d+\b' % en_label)
+                # 保存图片
                 if en_label in ['table', 'figure']:
                     res = re.findall(p, ocr_res)
                     if res:
