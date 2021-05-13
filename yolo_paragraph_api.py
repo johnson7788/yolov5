@@ -49,8 +49,8 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class YOLOModel(object):
     def __init__(self, verbose=0):
         self.verbose = verbose
-        self.label_list = ['p0', 'p1', 'p2']
-        self.label_list_cn = ['段落', '段落上', '段落下']
+        self.label_list = ['p2', 'p0', 'p1']
+        self.label_list_cn = ['段落下', '段落', '段落上']
         #给每个类别的候选框设置一个颜色
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.label_list]
         self.num_labels = len(self.label_list)
@@ -62,7 +62,7 @@ class YOLOModel(object):
         # 预测的batch_size大小
         self.predict_batch_size = 16
         #模型的名称或路径
-        self.weights = 'runs/train/pdf/weights/last.pt'      # 'yolov5s.pt'
+        self.weights = 'runs/train/paragraph/weights/last.pt'      # 'yolov5s.pt'
         # self.weights = 'runs/train/exp2/weights/last.pt'      # 'yolov5s.pt'
         self.source = 'images_dir'  #图片目录
         self.img_size = 640   #像素
