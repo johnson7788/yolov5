@@ -14,7 +14,7 @@ train: ../labeled_paragraph/images  # 128 images
 val: ../labeled_paragraph/images  # 128 images
 
 # number of classes
-nc: 3
+nc: 1
 
-# class names,p0表示完整段落，p1表示段落的上半部分，p2表示下半部分
-names: [ 'p0', 'p1', 'p2' ]
+# class names,p0表示完整段落
+names: [ 'p0' ]
