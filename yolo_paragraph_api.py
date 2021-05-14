@@ -49,8 +49,8 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class YOLOModel(object):
     def __init__(self, verbose=0):
         self.verbose = verbose
-        self.label_list = ['p2', 'p0', 'p1']
-        self.label_list_cn = ['段落下', '段落', '段落上']
+        self.label_list = ['p0', 'p2', 'p1']
+        self.label_list_cn = ['段落', '段落下', '段落上']
         #给每个类别的候选框设置一个颜色
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.label_list]
         self.num_labels = len(self.label_list)

@@ -78,7 +78,7 @@ def process_wandb_config_ddp_mode(opt):
 
 
 class WandbLogger():
-    def __init__(self, opt, name, run_id, data_dict, job_type='Training'):
+    def __init__(self, opt, name, run_id, data_dict, job_type='Training', mode='online'):
         # Pre-training routine --
         self.job_type = job_type
         self.wandb, self.wandb_run, self.data_dict = wandb, None if not wandb else wandb.run, data_dict
@@ -89,7 +89,7 @@ class WandbLogger():
                 model_artifact_name = WANDB_ARTIFACT_PREFIX + model_artifact_name
                 assert wandb, 'install wandb to resume wandb runs'
                 # Resume wandb-artifact:// runs here| workaround for not overwriting wandb.config
-                self.wandb_run = wandb.init(id=run_id, project=project, resume='allow')
+                self.wandb_run = wandb.init(id=run_id, project=project, resume='allow', mode=mode)
                 opt.resume = model_artifact_name
         elif self.wandb:
             self.wandb_run = wandb.init(config=opt,
@@ -97,6 +97,7 @@ class WandbLogger():
                                         project='YOLOv5' if opt.project == 'runs/train' else Path(opt.project).stem,
                                         name=name,
                                         job_type=job_type,
+                                        mode=mode,
                                         id=run_id) if not wandb.run else wandb.run
         if self.wandb_run:
             if self.job_type == 'Training':
