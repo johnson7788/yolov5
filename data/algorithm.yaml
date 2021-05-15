@@ -10,8 +10,8 @@
 download: http://127.0.0.1/pdfmini.zip
 
 # train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
-train: ../labeled_paragraph/images  # 128 images
-val: ../labeled_paragraph/images  # 128 images
+train: ../labeled_algorithm/images  # 128 images
+val: ../labeled_algorithm/images  # 128 images
 
 # number of classes
 nc: 1
