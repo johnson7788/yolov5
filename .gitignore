@@ -250,3 +250,4 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 dataset
+*.tar.gz
