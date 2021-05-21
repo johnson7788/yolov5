@@ -371,8 +371,8 @@ def extract():
     detect_data = model.detect(test_data)
     results = model.extract(detect_data=detect_data, extract_dir=extract_dir)
     logger.info(f"收到的数据是:{test_data}")
-    logger.info(f"预测的结果是:{results}")
-    return jsonify(results)
+    logger.info(f"预测的结果是:{detect_data}")
+    return jsonify(detect_data)
 
 @app.route("/api/train", methods=['POST'])
 def train():
