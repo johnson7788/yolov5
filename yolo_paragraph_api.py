@@ -184,8 +184,8 @@ class YOLOModel(object):
                     confidences = det[:, 4].tolist()
                     # eg: ['figure', 'equation', 'figure']
                     labels = [self.label_list_cn[i] for i in map(int, det[:, -1].tolist())]
-                    #图片的名称，bboex，置信度，标签，都加到结果
-                    results.append([images[idx], bboxes, confidences, labels])
+                    #图片的名称，bboex，置信度，标签，都加到结果, 原始图像的尺寸
+                    results.append([images[idx], bboxes, confidences, labels, im0.shape[:2]])
                     #最后一个维度的最后一位是预测的结果, unique是为了统计多个相同的结果
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
@@ -193,15 +193,16 @@ class YOLOModel(object):
 
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
-                        if self.save_img or self.view_img:  # 给图片添加bbox，画到图片上
-                            label = f'{self.label_list[int(cls)]} {conf:.2f}'
+                        if self.save_img or self.view_img:  # 给图片添加bbox，画到图片上, 坐标也画到图上
+                            a,b,c,d =int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])
+                            label = f'{self.label_list[int(cls)]} {conf:.2f},{a}:{b}:{c}:{d}'
                             plot_one_box(xyxy, im0, label=label, color=self.colors[int(cls)], line_thickness=3)
 
                     # Print time (inference + NMS)
                     print(f'{s}完成. 耗时({t2 - t1:.3f}s)')
                 else:
                     #如果没有匹配到，那么为空
-                    results.append([images[idx], [], [], []])
+                    results.append([images[idx], [], [], [],[]])
                     print(f'{s}完成. 没有发现目标,耗时({t2 - t1:.3f}s)')
 
                 # 保存图片的识别结果到目录下
@@ -332,10 +333,10 @@ class YOLOModel(object):
 @app.route("/api/predict", methods=['POST'])
 def predict():
     """
-    接收POST请求，获取data参数
+    接收POST请求，获取data参数,  bbox左上角的x1，y1, 右下角的x2,y2
     Args:
         test_data: 需要预测的数据，是一个图片的url列表, [images1, images2]
-    Returns: 返回格式是[[images, bboxes, confidences, labels],[images, bboxes,confidences, labels],...]
+    Returns: 返回格式是[[images, bboxes, confidences, labels],[images, bboxes,confidences, labels, image_size],...]
     results = {list: 4} [['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]], [0.9033942818641663, 0.8640206456184387, 0.2842876613140106], ['figure', 'equation', 'figure']], ['/Users/admin/git/yolov5/runs/api/images/A_Comprehensive_Survey_of_Grammar_Error_Correction0001-21.jpg', [[864.0, 132.0, 1608.0, 459.0], [865.0, 1862.0, 1602.0, 1944.0], [863.0, 1655.0, 1579.0, 1753.0], [115.0, 244.0, 841.0, 327.0], [116.0, 398.0, 837.0, 486.0], [124.0, 130.0, 847.0, 235.0], [119.0, 1524.0, 830.0, 1616.0], [161.0, 244.0, 799.0, 447.0]], [0.9183754920959473, 0.8920623660087585, 0.8884797692298889, 0.8873556852340698, 0.8276346325874329, 0.5401338934898376, 0.33260053396224976, 0.2832690477371216], ['table', 'equation', 'equation', 'equation', 'equation', 'equation', 'equation', 'equation']], ['/Users/admin/git/yolov5/runs/api/images/2007.158710001-09.jpg', [], ...
      0 = {list: 4} ['/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg', [[832.0, 160.0, 1495.0, 610.0], [849.0, 1918.0, 1467.0, 2016.0], [204.0, 0.0, 798.0, 142.0]], [0.9033942818641663, 0.8640206456184387, 0.2842876613140106], ['figure', 'equation', 'figure']]
       0 = {str} '/Users/admin/git/yolov5/runs/api/images/Reference-less_Measure_of_Faithfulness_for_Grammatical_Er1804.038240001-2.jpg'
@@ -389,4 +390,4 @@ def train():
 
 if __name__ == "__main__":
     model = YOLOModel()
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=5001, debug=False, threaded=True)
