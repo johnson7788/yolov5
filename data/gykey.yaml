@@ -14,7 +14,7 @@ train: ../labeled_gykey/images  # 128 images
 val: ../labeled_gykey/images  # 128 images
 
 # number of classes
-nc: 2
+nc: 1
 
 # class names
-names: ['piano_key', 'piano']
+names: ['piano_key']
