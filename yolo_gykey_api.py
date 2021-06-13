@@ -61,7 +61,7 @@ class YOLOModel(object):
         # 预测的batch_size大小
         self.predict_batch_size = 16
         #模型的名称或路径
-        self.weights = 'runs/train/gy/weights/best.pt'      # 'yolov5s.pt'
+        self.weights = 'runs/train/gykey/weights/best.pt'      # 'yolov5s.pt'
         self.source = 'images_dir'  #图片目录
         self.img_size = 864   #像素
         self.conf_thres = 0.05  #置信度, 大于这个置信度的才类别才取出来
