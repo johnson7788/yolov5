@@ -268,7 +268,7 @@ class YOLOModel(object):
         """
         对detect得到的结果，截取其中目标检测的内容，保存到extract_dir
         对于截取的图片的命名，需要通过OCR识别,需要调用baidu OCR的api
-        :param detect_data: 是dectect函数的结果
+        :param detect_data: 是dectect函数yolo的返回结果
         :param extract_dir: 提取图片中的表格，公式，图片，裁剪出来，保存到这个目录中
         :param ocr: 使用baidu的ocr，还是paddle的ocr
         :return:
